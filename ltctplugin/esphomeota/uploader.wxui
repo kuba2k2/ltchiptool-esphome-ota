@@ -26,10 +26,16 @@
               class="wxStaticText"
               label="IP Address / Hostname" />
             <node
-              class="wxTextCtrl"
-              var_name="input_address"
+              class="wxComboBox"
+              var_name="combo_address"
               borders="wxBOTTOM|wxRIGHT|wxLEFT"
               flags="wxEXPAND" />
+            <node
+              class="wxStaticText"
+              label="0 devices found"
+              var_name="text_devices"
+              font="normal size,italic"
+              borders="wxBOTTOM|wxRIGHT|wxLEFT" />
           </node>
           <node
             class="wxBoxSizer"
@@ -61,6 +67,10 @@
           </node>
         </node>
         <node
+          class="wxStaticLine"
+          size="20,-1d"
+          flags="wxEXPAND" />
+        <node
           class="wxStaticText"
           label="ESPHome OTA password (optional)"
           var_name="m_staticText_4" />
@@ -68,6 +78,11 @@
           class="wxTextCtrl"
           var_name="input_password"
           borders="wxBOTTOM|wxRIGHT|wxLEFT"
+          flags="wxEXPAND" />
+        <node
+          class="wxStaticLine"
+          var_name="static_line_2"
+          size="20,-1d"
           flags="wxEXPAND" />
         <node
           class="wxStaticText"

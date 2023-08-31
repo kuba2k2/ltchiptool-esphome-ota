@@ -26,7 +26,19 @@
 							<object class="sizeritem">
 								<flag>wxBOTTOM|wxRIGHT|wxLEFT|wxEXPAND</flag>
 								<border>5</border>
-								<object class="wxTextCtrl" name="input_address" />
+								<object class="wxComboBox" name="combo_address" />
+							</object>
+							<object class="sizeritem">
+								<flag>wxBOTTOM|wxRIGHT|wxLEFT</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="text_devices">
+									<label>0 devices found</label>
+									<wrap>-1</wrap>
+									<font>
+										<size>9</size>
+										<style>italic</style>
+									</font>
+								</object>
 							</object>
 						</object>
 					</object>
@@ -76,6 +88,14 @@
 				</object>
 			</object>
 			<object class="sizeritem">
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxStaticLine" name="static_line">
+					<style>wxLI_HORIZONTAL</style>
+					<size>20,-1d</size>
+				</object>
+			</object>
+			<object class="sizeritem">
 				<flag>wxALL</flag>
 				<border>5</border>
 				<object class="wxStaticText" name="m_staticText_4">
@@ -87,6 +107,14 @@
 				<flag>wxBOTTOM|wxRIGHT|wxLEFT|wxEXPAND</flag>
 				<border>5</border>
 				<object class="wxTextCtrl" name="input_password" />
+			</object>
+			<object class="sizeritem">
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxStaticLine" name="static_line_2">
+					<style>wxLI_HORIZONTAL</style>
+					<size>20,-1d</size>
+				</object>
 			</object>
 			<object class="sizeritem">
 				<flag>wxALL</flag>
