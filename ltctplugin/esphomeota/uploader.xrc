@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+	<object class="wxPanel" name="UploaderPanel">
+		<style>wxTAB_TRAVERSAL</style>
+		<object class="wxBoxSizer" name="sizer_uploader">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer" name="box_sizer">
+					<orient>wxHORIZONTAL</orient>
+					<object class="sizeritem">
+						<flag></flag>
+						<border>5</border>
+						<option>1</option>
+						<object class="wxBoxSizer" name="box_sizer_4">
+							<orient>wxVERTICAL</orient>
+							<object class="sizeritem">
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText">
+									<label>IP Address / Hostname</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<flag>wxBOTTOM|wxRIGHT|wxLEFT|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxTextCtrl" name="input_address" />
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer" name="box_sizer_3">
+							<orient>wxVERTICAL</orient>
+							<object class="sizeritem">
+								<flag>wxTOP|wxBOTTOM|wxRIGHT</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText_3">
+									<label>Port</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<flag></flag>
+								<border>5</border>
+								<object class="wxBoxSizer" name="box_sizer_5">
+									<orient>wxHORIZONTAL</orient>
+									<object class="sizeritem">
+										<flag>wxBOTTOM|wxRIGHT</flag>
+										<border>5</border>
+										<object class="wxComboBox" name="combo_port">
+											<content>
+												<item>3232 - ESP32</item>
+												<item>8266 - ESP8266</item>
+												<item>2040 - RP2040</item>
+												<item>8892 - LibreTiny</item>
+											</content>
+											<selection>3</selection>
+										</object>
+									</object>
+									<object class="sizeritem">
+										<flag>wxBOTTOM|wxRIGHT</flag>
+										<border>5</border>
+										<object class="wxButton" name="button_ping">
+											<label>Ping</label>
+											<hidden>1</hidden>
+										</object>
+									</object>
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="m_staticText_4">
+					<label>ESPHome OTA password (optional)</label>
+					<wrap>-1</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<flag>wxBOTTOM|wxRIGHT|wxLEFT|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxTextCtrl" name="input_password" />
+			</object>
+			<object class="sizeritem">
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="m_staticText_2">
+					<label>File to upload</label>
+					<wrap>-1</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer" name="box_sizer_2">
+					<orient>wxHORIZONTAL</orient>
+					<object class="sizeritem">
+						<flag>wxBOTTOM|wxRIGHT|wxLEFT</flag>
+						<border>5</border>
+						<option>1</option>
+						<object class="wxTextCtrl" name="input_file" />
+					</object>
+					<object class="sizeritem">
+						<flag>wxBOTTOM|wxRIGHT</flag>
+						<border>5</border>
+						<object class="wxButton" name="button_browse">
+							<label>Browse</label>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<flag>wxALL|wxEXPAND</flag>
+				<border>0</border>
+				<object class="wxGridSizer" name="sizer_buttons">
+					<rows>0</rows>
+					<cols>2</cols>
+					<vgap>0</vgap>
+					<hgap>0</hgap>
+					<object class="sizeritem">
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxCommandLinkButton" name="button_start">
+							<label>Start</label>
+							<note>-</note>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxCommandLinkButton" name="button_cancel">
+							<label>Cancel</label>
+							<note>-</note>
+							<enabled>0</enabled>
+						</object>
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+</resource>
