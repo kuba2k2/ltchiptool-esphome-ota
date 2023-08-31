@@ -63,7 +63,7 @@ class UploaderPanel(BasePanel, ServiceListener):
 
     def GetSettings(self) -> dict:
         return dict(
-            address=self.address,
+            address=self.real_address,
             port=self.port,
             password=self.password,
             file=self.file,

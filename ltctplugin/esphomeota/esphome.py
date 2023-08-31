@@ -1,8 +1,13 @@
 # Copyright (c) Kuba Szczodrzyński 2022-08-06.
 
+import gzip
+import hashlib
+import os
 from enum import IntEnum
-from logging import info
+from io import BytesIO
+from logging import debug, info
 from os import stat
+from random import random
 from socket import (
     AF_INET,
     IPPROTO_TCP,
@@ -18,6 +23,7 @@ from typing import IO, Tuple, Union
 from _socket import gaierror
 from ltchiptool.util.intbin import inttobe32
 from ltchiptool.util.logging import verbose
+from ltchiptool.util.misc import sizeof
 from ltchiptool.util.streams import ClickProgressCallback
 
 OTA_MAGIC = b"\x6C\x26\xF7\x5C\x45"
@@ -65,7 +71,6 @@ class ESPHomeUploader:
     def __init__(
         self,
         file: IO[bytes],
-        md5: bytes,
         host: str,
         port: int,
         password: str = None,
@@ -73,7 +78,6 @@ class ESPHomeUploader:
     ):
         self.file = file
         self.file_size = stat(file.name).st_size
-        self.file_md5 = md5
         self.host = host
         self.port = port
         self.password = password
@@ -109,18 +113,22 @@ class ESPHomeUploader:
 
         self.sock.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
 
-    def send(self, data: Union[bytes, int]):
+    def send(self, data: Union[bytes, int, str]):
         if isinstance(data, int):
             data = bytes([data])
+        if isinstance(data, str):
+            data = data.encode()
         verbose(f"<-- TX: {tohex(data)}")
         self.sock.sendall(data)
 
     def receive(self, *codes: OTACode, size: int = 0) -> Tuple[OTACode, bytes]:
-        data = self.sock.recv(1)
-        response = OTACode(data[0])
-        verbose(f"--> RX: {response.name}")
-        if response not in codes:
-            raise ValueError(f"Received {response.name} instead of {codes}")
+        response = None
+        if codes:
+            data = self.sock.recv(1)
+            response = OTACode(data[0])
+            verbose(f"--> RX: {response.name}")
+            if response not in codes:
+                raise ValueError(f"Received {response.name} instead of {codes}")
         if size == 0:
             return response, b""
         data = self.sock.recv(size)
@@ -139,19 +147,54 @@ class ESPHomeUploader:
 
         self.send(OTACode.FEATURE_SUPPORTS_COMPRESSION)
         features, _ = self.receive(
-            OTACode.RESP_HEADER_OK, OTACode.RESP_SUPPORTS_COMPRESSION
+            OTACode.RESP_HEADER_OK,
+            OTACode.RESP_SUPPORTS_COMPRESSION,
         )
         if features == OTACode.RESP_SUPPORTS_COMPRESSION:
-            raise NotImplementedError("Compression is not implemented")
+            file_data = self.file.read()
+            compressed_data = gzip.compress(file_data, compresslevel=9)
+            self.file_size = len(compressed_data)
+            info(f"Compressed data to {sizeof(self.file_size)}")
+            self.file = BytesIO(compressed_data)
 
-        auth, _ = self.receive(OTACode.RESP_AUTH_OK, OTACode.RESP_REQUEST_AUTH)
+        auth, _ = self.receive(
+            OTACode.RESP_AUTH_OK,
+            OTACode.RESP_REQUEST_AUTH,
+        )
         if auth == OTACode.RESP_REQUEST_AUTH:
-            raise NotImplementedError("Authentication is not implemented")
+            if not self.password:
+                raise ValueError("OTA password required, but not specified")
+
+            _, nonce_raw = self.receive(size=32)
+            nonce = nonce_raw.decode()
+            cnonce = hashlib.md5(str(random()).encode()).hexdigest()
+            debug(f"Auth nonce={nonce}, cnonce={cnonce}")
+            self.send(cnonce)
+
+            md5 = hashlib.md5()
+            md5.update(self.password.encode("utf-8"))
+            md5.update(nonce.encode())
+            md5.update(cnonce.encode())
+            digest = md5.hexdigest()
+            debug(f"Auth result={digest}")
+            self.send(digest)
+
+            auth, _ = self.receive(
+                OTACode.RESP_AUTH_OK,
+                OTACode.ERROR_AUTH_INVALID,
+            )
+        if auth == OTACode.ERROR_AUTH_INVALID:
+            raise ValueError("Couldn't authenticate: incorrect OTA password")
 
         self.send(inttobe32(self.file_size))
         self.receive(OTACode.RESP_UPDATE_PREPARE_OK)
 
-        self.send(self.file_md5.hex().encode())
+        md5 = hashlib.md5()
+        md5.update(self.file.read())
+        self.file.seek(0, os.SEEK_SET)
+        digest = md5.hexdigest()
+        debug(f"MD5 of upload is {digest}")
+        self.send(digest)
         self.receive(OTACode.RESP_BIN_MD5_OK)
 
         self.sock.setsockopt(IPPROTO_TCP, TCP_NODELAY, 0)

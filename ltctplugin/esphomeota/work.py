@@ -1,7 +1,5 @@
 #  Copyright (c) Kuba Szczodrzyński 2023-8-31.
 
-import hashlib
-import os
 from typing import IO
 
 from ltchiptool.gui.work.base import BaseThread
@@ -12,7 +10,7 @@ from ltctplugin.esphomeota.esphome import ESPHomeUploader
 
 class UploaderThread(BaseThread):
     callback: ClickProgressCallback
-    io: IO[bytes] = None
+    io: IO[bytes] | None = None
     esphome: ESPHomeUploader = None
 
     def __init__(
@@ -34,19 +32,16 @@ class UploaderThread(BaseThread):
             self.callback.on_message("Reading firmware file...")
 
             self.io = open(self.file, "rb")
-            md5 = hashlib.md5()
-            md5.update(self.io.read())
-            self.io.seek(0, os.SEEK_SET)
-
             self.esphome = ESPHomeUploader(
                 file=self.io,
-                md5=md5.digest(),
                 host=self.address,
                 port=self.port,
                 password=self.password or None,
                 callback=self.callback,
             )
             self.esphome.upload()
+            self.io.close()
+            self.io = None
 
     def stop(self):
         super().stop()
