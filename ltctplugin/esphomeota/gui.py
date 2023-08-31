@@ -1,14 +1,15 @@
 #  Copyright (c) Kuba Szczodrzyński 2023-8-31.
 
 import os
-from logging import debug, warning
 from os.path import dirname, isfile
 
 import wx.adv
 import wx.xrc
+from ltchiptool.gui.base.zc import ZeroconfBase
 from ltchiptool.gui.panels.base import BasePanel
 from ltchiptool.gui.utils import on_event, with_target
-from zeroconf import IPVersion, ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
+from ltchiptool.util.logging import verbose
+from zeroconf import IPVersion, ServiceInfo
 
 from ltctplugin.esphomeota.work import UploaderThread
 
@@ -25,10 +26,7 @@ PLATFORM_PORT = {
 
 
 # noinspection PyPep8Naming
-class UploaderPanel(BasePanel, ServiceListener):
-    zeroconf: Zeroconf | None = None
-    zeroconf_sb: ServiceBrowser | None = None
-    services: dict[str, ServiceInfo] = None
+class UploaderPanel(BasePanel, ZeroconfBase):
     address_by_label: dict[str, tuple[str, int | None]] = None
 
     def __init__(self, parent: wx.Window, frame):
@@ -51,10 +49,8 @@ class UploaderPanel(BasePanel, ServiceListener):
             "button_cancel", self.OnCancelClick
         )
 
-        self.zeroconf = Zeroconf()
-        self.services = {}
         self.address_by_label = {}
-        self.OnServicesUpdate()
+        self.OnZeroconfUpdate({})
 
         self.File.Bind(wx.EVT_KILL_FOCUS, self.OnBlur)
         self.Cancel.SetNote("")
@@ -87,14 +83,14 @@ class UploaderPanel(BasePanel, ServiceListener):
             self.file = file
 
     def OnActivate(self):
-        if self.zeroconf_sb:
-            return
-        self.zeroconf_sb = ServiceBrowser(self.zeroconf, ZEROCONF_SERVICE, self)
+        self.AddZeroconfBrowser(ZEROCONF_SERVICE)
+
+    def OnDeactivate(self):
+        self.StopZeroconf()
 
     def OnUpdate(self, target: wx.Window = None):
         address = self.address
-        file = self.file
-        print(f"OnUpdate(address={address}, file={file})")
+        self.file
         errors = []
 
         if target == self.Address and address in self.address_by_label:
@@ -161,17 +157,16 @@ class UploaderPanel(BasePanel, ServiceListener):
     def OnCancelClick(self):
         self.StopWork(UploaderThread)
 
-    def OnServicesUpdate(self):
+    def OnZeroconfUpdate(self, services: dict[str, ServiceInfo]):
         text = self.Address.GetValue()
         items = []
-        self.address_by_label = {}
-        for info in self.services.values():
+        for info in services.values():
             address = info.parsed_scoped_addresses(version=IPVersion.V4Only)[0]
             port = None
 
             label = f"{address} - {info.server}"
             if info.properties:
-                debug(f"Device @ {address}: {info.properties}")
+                verbose(f"Device @ {address}: {info.properties}")
                 version = info.properties.get(b"version", b"").decode()
                 platform = info.properties.get(b"platform", b"").decode()
                 board = info.properties.get(b"board", b"").decode()
@@ -182,7 +177,7 @@ class UploaderPanel(BasePanel, ServiceListener):
 
             self.address_by_label[label] = (address, port)
             items.append(label)
-        self.Devices.SetLabel(f"{len(self.services)} device(s) found")
+        self.Devices.SetLabel(f"{len(services)} device(s) found")
         self.Address.SetItems(items)
         self.Address.SetValue(text)
 
@@ -234,27 +229,3 @@ class UploaderPanel(BasePanel, ServiceListener):
         value = value or ""
         self.File.ChangeValue(value)
         self.DoUpdate(self.File)
-
-    def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        debug(f"mDNS service added: {name}")
-        info = zc.get_service_info(type_, name)
-        if info:
-            self.services[name] = info
-        else:
-            warning("Couldn't read service info")
-        self.OnServicesUpdate()
-
-    def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        debug(f"mDNS service updated: {name}")
-        info = zc.get_service_info(type_, name)
-        if info:
-            self.services[name] = info
-        else:
-            warning("Couldn't read service info")
-            self.services.pop(name, None)
-        self.OnServicesUpdate()
-
-    def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        debug(f"mDNS service removed: {name}")
-        self.services.pop(name, None)
-        self.OnServicesUpdate()
